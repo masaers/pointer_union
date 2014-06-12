@@ -37,37 +37,111 @@ template<>
 struct ptrunion<> {
 public:
   typedef uint8_t size_type;
-  enum : size_type { my_id = 0 };
+  ///
+  /// \name Constructors and destructors
+  ///
+  /// \{
+  // ---------------------------------------------------------------------------
+  ///
+  /// Default constructor.
+  ///
   inline ptrunion() : ptr_m(NULL), id_m(my_id) {}
-  template<typename T>
-  inline ptrunion(T* ptr) : ptr_m(ptr), id_m(my_id) {}
-  inline ptrunion(const ptrunion&) = default;
-  inline ptrunion& operator=(const ptrunion& x) {
-    ptr_m = x.ptr_m;
-    id_m  = x.id_m;
+  ///
+  /// Constructor with any pointer type.
+  ///
+  template<typename ptr_T>
+  inline ptrunion(/// The pointer to construct the pointer union with.
+		  ptr_T* ptr) : ptr_m(ptr), id_m(my_id) {}
+  ///
+  /// Constructor with any pointer type and a specific type id.
+  ///
+protected:
+  template<typename ptr_T>
+  inline ptrunion(/// The pointer to construct the poiter union with.
+		  ptr_T* ptr,
+		  /// The type id of the pointer.
+		  size_type id) : ptr_m(ptr), id_m(id) {}
+public:
+  ///
+  /// Copy constructor.
+  ///
+  inline ptrunion(/// The pointer union to copy.
+		  const ptrunion&) = default;
+  // ---------------------------------------------------------------------------
+  /// \}
+
+  
+  ///
+  /// \name Overloaded operators
+  ///
+  /// \{
+  // ---------------------------------------------------------------------------
+  ///
+  /// Assignment from an existing pointer union.
+  ///
+  inline ptrunion& operator=(/// The pointer union to assign from.
+			     const ptrunion& x) {
+    set(x.ptr_m, x.id_m);
     return *this;
   }
-  inline ptrunion& operator=(void* ptr) {
+  ///
+  /// Assignment from a <code>void*</code>.
+  ///
+  inline ptrunion& operator=(/// The pointer that the pointer union
+			     /// will point to.
+			     void* ptr) {
     set(ptr, my_id);
     return *this;
   }
-  inline bool operator==(const ptrunion& x) const {
+  ///
+  /// Equality operator.
+  ///
+  inline bool operator==(/// The pointer union to compare to.
+			 const ptrunion& x) const {
     return ptr_m == x.ptr_m && id_m == x.id_m;
   }
-  inline bool operator!=(const ptrunion& x) const { return ! operator==(x); }
-  inline bool operator<(const ptrunion& x) const {
+  ///
+  /// Inequality operator.
+  ///
+  inline bool operator!=(/// The pointer union to compare to.
+			 const ptrunion& x) const { return ! operator==(x); }
+  ///
+  /// Ordering operator.
+  ///
+  inline bool operator<(/// The pointer union to compare to.
+			 const ptrunion& x) const {
     return id_m != x.id_m ? id_m < x.id_m : ptr_m < x.ptr_m;
   }
-  inline void* ptr() const { return ptr_m; }
-  inline size_type id() const { return id_m; }
+  ///
+  /// Cast to <code>void*</code> operator.
+  ///
   inline operator void*() const { return ptr_m; }
+  // ---------------------------------------------------------------------------
+  /// \}
+
+
+  ///
+  /// \name Accessors
+  ///
+  /// \{
+  // ---------------------------------------------------------------------------
+  ///
+  /// Retreive the type id of the pointer being held.
+  ///
+  inline size_type id() const { return id_m; }
+  ///
+  /// Retreive a <code>void*</code> version of the pointer being held.
+  ///
+  inline void* ptr() const { return ptr_m; }
+  // ---------------------------------------------------------------------------
+  /// \}
+
 protected:
-  template<typename ptr_T>
-  inline ptrunion(ptr_T* ptr, size_type id) : ptr_m(ptr), id_m(id) {}
   inline void set(void* ptr, size_type id) {
     ptr_m = ptr;
     id_m = id;
   }
+  enum : size_type { my_id = 0 };
 private:
   void* ptr_m;
   size_type id_m;
@@ -85,17 +159,67 @@ struct ptrunion<T, Ts...> : public ptrunion<Ts...> {
   typedef ptrunion<Ts...> base_type;
 public:
   typedef typename base_type::size_type size_type;
-  enum : size_type { my_id = base_type::my_id + 1 };
+
+  ///
+  /// \name Constructors and destructors
+  ///
+  /// \{
+  // ---------------------------------------------------------------------------
+  ///
+  /// Default constructor.
+  ///
   inline ptrunion() : base_type() {}
-  inline ptrunion(T* ptr) : base_type(ptr, my_id) {}
-  inline ptrunion& operator=(T* ptr) {
+  ///
+  /// Constructor with the specific pointer type handled by this class.
+  ///
+  inline ptrunion(/// The pointer to construct the pointer union with.
+		  T* ptr) : base_type(ptr, my_id) {}
+  ///
+  /// Constructor with any pointer type not handled by this class.
+  ///
+  template<typename ptr_T>
+  inline ptrunion(/// The pointer to construct the pointer union with.
+		  ptr_T* ptr) : base_type(ptr) {}
+  ///
+  /// Constructor with any pointer with a given type id.
+  ///
+protected:
+  template<typename ptr_T>
+  inline ptrunion(/// The pointer to construct the pointer union with.
+		  ptr_T* ptr,
+		  /// The type id of the pointer.
+		  size_type id) : base_type(ptr, id) {}
+public:
+  // ---------------------------------------------------------------------------
+  /// \}
+
+
+  ///
+  /// \name Overloaded operators
+  ///
+  /// \{
+  // ---------------------------------------------------------------------------
+  ///
+  /// Assignment operator from the specific pointer type handled by
+  /// this class.
+  ///
+  inline ptrunion& operator=(/// The pointer to assign to the pointer union.
+			     T* ptr) {
     this->set((void*)ptr, my_id);
     return *this;
   }
-  template<typename ptr_T> inline ptrunion& operator=(ptr_T* ptr) {
+  ///
+  /// Assignment operator from any pointer not handled by this class.
+  ///
+  template<typename ptr_T>
+  inline ptrunion& operator=(// The pointer to assign to the pointer union.
+			     ptr_T* ptr) {
     base_type::operator=(ptr);
     return *this;
   }
+  ///
+  /// Cast operator to the pointer type handled by this class.
+  ///
   inline operator T*() const {
     T* result = NULL;
     if (this->id() == my_id) {
@@ -103,12 +227,17 @@ public:
     }
     return result;
   }
-  template<typename ptr_T> inline operator ptr_T*() const {
+  ///
+  /// Cast operator to any pointer type not handled by this class.
+  ///
+  template<typename ptr_T>
+  inline operator ptr_T*() const {
     return base_type::operator ptr_T*();
   }
+  // ---------------------------------------------------------------------------
+  /// \}
 protected:
-  template<typename ptr_T>
-  inline ptrunion(ptr_T* ptr, size_type id) : base_type(ptr, id) {}
+  enum : size_type { my_id = base_type::my_id + 1 };
 };
 
 

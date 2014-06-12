@@ -25,3 +25,6 @@ test : build/pointer_union_test
 
 clean :
 	@rm -rf build || true
+
+build/pointer_union_test.o : pointer_union_test.cpp pointer_union.hpp
+
