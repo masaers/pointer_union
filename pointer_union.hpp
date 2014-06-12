@@ -133,8 +133,25 @@ public:
   /// Retreive a <code>void*</code> version of the pointer being held.
   ///
   inline void* ptr() const { return ptr_m; }
+  ///
+  /// Determines whether the the held pointer is of a specific
+  /// type. All pointer unions are potentially pointing to
+  /// <code>void</code>.
+  ///
+  template<typename ptr_T>
+  inline typename std::enable_if<std::is_same<void, ptr_T>::value, bool>::type
+  is() const { return true; }
+  ///
+  /// Determines whether the the held pointer is of a specific
+  /// type. All pointer unions are potentially pointing to
+  /// <code>void</code>.
+  ///
+  template<typename ptr_T>
+  inline typename std::enable_if<! std::is_same<void, ptr_T>::value, bool>::type
+  is() const { return false; }
   // ---------------------------------------------------------------------------
   /// \}
+
 
 protected:
   inline void set(void* ptr, size_type id) {
@@ -236,6 +253,29 @@ public:
   }
   // ---------------------------------------------------------------------------
   /// \}
+
+
+  ///
+  /// \name Accessors
+  ///
+  /// \{
+  // ---------------------------------------------------------------------------
+  ///
+  /// Determines whether the held pointer is of a specific type.
+  ///
+  template<typename ptr_T>
+  typename std::enable_if<std::is_same<T, ptr_T>::value, bool>::type
+  is() const { return this->id() == my_id; }
+  ///
+  /// Determines whether the held pointer is of a specific type.
+  ///
+  template<typename ptr_T>
+  typename std::enable_if<! std::is_same<T, ptr_T>::value, bool>::type
+  is() const { return base_type::template is<ptr_T>(); }
+  // ---------------------------------------------------------------------------
+  /// \}
+
+  
 protected:
   enum : size_type { my_id = base_type::my_id + 1 };
 };

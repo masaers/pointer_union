@@ -16,18 +16,30 @@ int main(const int argc, const char** argv) {
     assert(      (int*)pu != NULL);
     assert((const int*)pu == NULL);
     assert(   (double*)pu == NULL);
+    assert(  pu.is<int>());
+    assert(! pu.is<const int>());
+    assert(! pu.is<double>());
+    assert(  pu.is<void>());
     pu = &ci;
     assert((const int*)pu == &ci);
     assert(     (void*)pu == &ci);
     assert(      (int*)pu == NULL);
     assert((const int*)pu != NULL);
     assert(   (double*)pu == NULL);
+    assert(! pu.is<int>());
+    assert(  pu.is<const int>());
+    assert(! pu.is<double>());
+    assert(  pu.is<void>());
     pu = &d;
     assert(   (double*)pu == &d);
     assert(     (void*)pu == &d);
     assert(      (int*)pu == NULL);
     assert((const int*)pu == NULL);
     assert(   (double*)pu != NULL);
+    assert(! pu.is<int>());
+    assert(! pu.is<const int>());
+    assert(  pu.is<double>());
+    assert(  pu.is<void>());
   }
   {
     ptrunion<int, double> pu(&d);
