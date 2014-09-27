@@ -12,7 +12,7 @@
 
 
 /*******************************************************************************
- * A pointer union can store a pointer to fixed set of types, and
+ * A pointer union can store a pointer to a fixed set of types, and
  * remembers what it currently stores; like a tagged union for
  * pointers.
  *
@@ -37,6 +37,12 @@ template<>
 struct ptrunion<> {
 public:
   typedef uint8_t size_type;
+protected:
+  enum : size_type { my_id = 0 };
+public:
+  template<typename U, bool dummy = true> struct id_of {
+    enum : size_type { value = my_id };
+  };
   ///
   /// \name Constructors and destructors
   ///
@@ -51,7 +57,7 @@ public:
   ///
   template<typename ptr_T>
   inline ptrunion(/// The pointer to construct the pointer union with.
-		  ptr_T* ptr) : ptr_m(ptr), id_m(my_id) {}
+		  ptr_T* ptr) : ptr_m((void*)ptr), id_m(my_id) {}
   ///
   /// Constructor with any pointer type and a specific type id.
   ///
@@ -60,7 +66,7 @@ protected:
   inline ptrunion(/// The pointer to construct the poiter union with.
 		  ptr_T* ptr,
 		  /// The type id of the pointer.
-		  size_type id) : ptr_m(ptr), id_m(id) {}
+		  size_type id) : ptr_m((void*)ptr), id_m(id) {}
 public:
   ///
   /// Copy constructor.
@@ -126,11 +132,11 @@ public:
   /// \{
   // ---------------------------------------------------------------------------
   ///
-  /// Retreive the type id of the pointer being held.
+  /// Retrieve the type id of the pointer being held.
   ///
   inline size_type id() const { return id_m; }
   ///
-  /// Retreive a <code>void*</code> version of the pointer being held.
+  /// Retrieve a <code>void*</code> version of the pointer being held.
   ///
   inline void* ptr() const { return ptr_m; }
   ///
@@ -152,13 +158,11 @@ public:
   // ---------------------------------------------------------------------------
   /// \}
 
-
 protected:
   inline void set(void* ptr, size_type id) {
     ptr_m = ptr;
     id_m = id;
   }
-  enum : size_type { my_id = 0 };
 private:
   void* ptr_m;
   size_type id_m;
@@ -176,7 +180,17 @@ struct ptrunion<T, Ts...> : public ptrunion<Ts...> {
   typedef ptrunion<Ts...> base_type;
 public:
   typedef typename base_type::size_type size_type;
-
+protected:
+  enum : size_type { my_id = base_type::my_id + 1 };
+public:
+  template<typename U, bool dummy = true> struct id_of
+    : public base_type::template id_of<U>
+  {};
+  template<bool dummy> struct id_of<T, dummy> {
+    enum : size_type { value = my_id };
+  };
+  
+  
   ///
   /// \name Constructors and destructors
   ///
@@ -274,10 +288,6 @@ public:
   is() const { return base_type::template is<ptr_T>(); }
   // ---------------------------------------------------------------------------
   /// \}
-
-  
-protected:
-  enum : size_type { my_id = base_type::my_id + 1 };
 };
 
 

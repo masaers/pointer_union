@@ -44,6 +44,57 @@ int main(const int argc, const char** argv) {
   {
     ptrunion<int, double> pu(&d);
   }
+
+  {
+    typedef ptrunion<int, const int, double> pu_type;
+    pu_type pu(&i);
+    switch (pu.id()) {
+    case pu_type::id_of<int>::value : {
+      break; }
+    case pu_type::id_of<const int>::value : {
+      assert(false);
+      break; }
+    case pu_type::id_of<double>::value : {
+      assert(false);
+      break; }
+    case pu_type::id_of<void>::value : {
+      assert(false);
+      break; }
+    };
+  }
+  {
+    typedef ptrunion<int, const int, double> pu_type;
+    pu_type pu(&ci);
+    switch (pu.id()) {
+    case pu_type::id_of<const int>::value : {
+      break; }
+    default : {
+      assert(false);
+      break; }
+    };
+  }
+  {
+    typedef ptrunion<int, const int, double> pu_type;
+    pu_type pu(&d);
+    switch (pu.id()) {
+    case pu_type::id_of<double>::value : {
+      break; }
+    default : {
+      assert(false);
+      break; }
+    };
+  }
+  {
+    typedef ptrunion<int, const int, double> pu_type;
+    pu_type pu;
+    switch (pu.id()) {
+    case pu_type::id_of<void>::value : {
+      break; }
+    default : {
+      assert(false);
+      break; }
+    };
+  }
   
   return EXIT_SUCCESS;
 }
