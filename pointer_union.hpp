@@ -28,7 +28,7 @@ template<typename...> struct ptrunion;
 
 
 /*******************************************************************************
- * The base case is ithe pointer union of no types; it can hold a
+ * The base case is the pointer union of no types; it can hold a
  * <code>void*</code>.
  *
  * \author Markus Saers <masaers@gmail.com>

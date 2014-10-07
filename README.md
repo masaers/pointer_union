@@ -27,3 +27,49 @@ This allows for a limited polymorphic behavior that is different from
 virtual classes in that it a) works on built-in types as well as
 user-defined classes, and b) requires no unifying class hierarchy to
 work.
+
+The pointer union can hold pointers to any type, but will represent
+them as `void*`s when they are not explicitly enumerated as holdable.
+
+Example:
+
+    int i = 2;
+    double d = 3.14;
+    const int ci = 5;
+
+    ptrunion<int, double> p(&ci);
+
+    int* ip = (int*) p;        // ip points to NULL
+    double* dp = (double*) p;  // dp points to NULL
+    void* vp = (void*) p;      // vp points to ci
+
+Note that `int` and `const int` are treated as completely different
+types, which is consistent with c++ in general.
+
+Like the enhanced `enum`s in Swift, a pointer union allows you to
+build `switch` statements that choose a case based on the type
+currently pointed to by the union.
+
+Example:
+
+    int i = 2;
+    double d = 3.14;
+    ptrunion<int, double> p(&i);
+
+    switch (p) {
+    case ptrunion<int, double>::id_of<int>::value : {
+      cout << "integer" << endl;
+      break; }
+    case ptrunion<int, double>::id_of<double>::value : {
+      cout << "double" << endl;
+      break; }
+    default : {
+      cout << "null" << endl;
+      break; }
+    }
+
+All pointer unions can store `void*`s, so there is always a valid
+branch called `ptrunion<...>::id_of<void>::value` that you got for
+free with the types you specified. Be aware of that when attempting to
+write exhaustive case lists.
+

@@ -43,6 +43,9 @@ int main(const int argc, const char** argv) {
   }
   {
     ptrunion<int, double> pu(&d);
+    pu = &ci;
+    assert(pu.is<void>());
+    assert((void*)pu == &ci);
   }
 
   {
