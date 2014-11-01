@@ -56,7 +56,7 @@ Example:
     double d = 3.14;
     ptrunion<int, double> p(&i);
 
-    switch (p) {
+    switch (p.id()) {
     case ptrunion<int, double>::id_of<int>::value : {
       cout << "integer" << endl;
       break; }
