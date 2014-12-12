@@ -3,28 +3,76 @@
 #
 # author: Markus Saers <masaers@gmail.com>
 # ==============================================================================
+#
+# Settings
+#
 
-CXXFLAGS += -Wall -pedantic -std=c++11 -O3 -g
+CXXFLAGS+=-Wall -pedantic -std=c++11 -g -O3
+LDFLAGS=
 
-.PRECIOUS : build/%.o %/.STAMP
+PROG_NAMES=
+TEST_NAMES=pointer_union_test polyset_test
+
+#
+# Derived settings
+#
+
+# List of binaries that needs to be built
+BIN_NAMES=$(PROG_NAMES) $(TEST_NAMES)
+
+# Object files are c++ sources that do not result in stand alone binaries
+OBJECTS=$((filter-out $(BIN_NAMES:%=%.cpp),$(wildcard *.cpp)):%.cpp=build/obj/%.o)
+
+
+#
+# Targets
+#
+
+# Clear default suffix rules
+.SUFFIXES :
+# Keep STAMPs and dependencies between calls
+.PRECIOUS : %/.STAMP build/dep/%.d build/obj/%.o
+
+all : binaries
+
+binaries : $(BIN_NAMES:%=build/bin/%)
+
+test : $(TEST_NAMES:%=build/test/%.out)
+	@if [ -s build/test/.ERROR ]; then \
+	     ( cat build/test/.ERROR; rm build/test/.ERROR ) \
+	else echo "\n[ALL TESTS PASSED]\n"; \
+	fi
+
+build/bin/% : build/obj/%.o $(OBJECTS) build/bin/.STAMP
+	$(CXX) $(LDFLAGS) $< $(OBJECTS) -o $@
+
+build/obj/%.o : %.cpp build/obj/.STAMP build/dep/.STAMP
+	$(CXX) $(CXXFLAGS) -MM -MT '$@' $< > $(@:build/obj/%.o=build/dep/%.d)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+build/test/%.out : build/bin/% build/test/.STAMP
+	@if [ -e $@ ]; then \
+	( cp $@ $@.old; \
+          $< &> $@; \
+	  diff $@ $@.old >> build/test/.ERROR \
+	  || echo "REGRESSION TEST FAILED: $<" >> build/test/.ERROR \
+	  ; \
+	  rm $@.old ) \
+	else \
+	( $< &> $@; \
+          echo "WARNING: No regression test: $<" >> build/test/.ERROR ) \
+	fi
 
 %/.STAMP :
-	@mkdir -p $(@D)
+	@mkdir -pv $(@D)
 	@touch $@
 
-build/%.o : %.cpp build/.STAMP
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-% : %.o
-	$(CXX) $(CXXFLAGS) -o $@ $<
-
-all : test
-
-test : build/pointer_union_test
-	@build/pointer_union_test || echo "unit test failed: pointer_union_test"
-
 clean :
-	@rm -rf build || true
+	@rm -rf build/dep build/obj build/bin
+	@rm -f *~
 
-build/pointer_union_test.o : pointer_union_test.cpp pointer_union.hpp
+cleaner : clean
+	@rm -rf build
+
+-include $(wildcard build/dep/*.d)
 
