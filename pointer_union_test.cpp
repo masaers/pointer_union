@@ -4,6 +4,7 @@
 
 int main(const int argc, const char** argv) {
   using namespace std;
+  using namespace com_masaers;
   
   int i = 2;
   const int ci = 5;
