@@ -23,7 +23,7 @@ namespace com_masaers {
 		}
 	public:
 	  template<typename T> void erase(T&& value) {
-	    static_assert(std::is_same<T, void>::value, "Cannot erase unsupported type in a polyset.");
+	    static_assert(std::is_same<T, void>::value, "Cannot erase unsupported type from a polyset.");
 	  }
 	  bool empty() const { return true; }
 	  std::size_t size() const { return 0; }
@@ -45,7 +45,7 @@ namespace com_masaers {
 			}
 			return result;
 		}
-		template<typename T> const void* do_find(const T& value) const {
+		template<typename T> auto do_find(const T& value) const -> decltype(base_type::do_find(value)) {
 		  return base_type::do_find(value);
 		}
 		std::pair<typename store_type::iterator, bool> do_insert(const Value& value) {
